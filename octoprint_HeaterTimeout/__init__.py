@@ -21,6 +21,7 @@ import time
 import octoprint.plugin
 from octoprint.util import RepeatedTimer
 
+
 class HeaterTimeout(octoprint.plugin.AssetPlugin,
 					octoprint.plugin.SettingsPlugin,
 					octoprint.plugin.ShutdownPlugin,
@@ -70,14 +71,14 @@ class HeaterTimeout(octoprint.plugin.AssetPlugin,
 				elif time.time() - self._heaterTimer > self._settings.get_int(['timeout']):
 					self._logger.info(u"Timeout triggered, shutting down heaters")
 					if self._settings.get_int(['notifications']):
-						self._plugin_manager.send_plugin_message(__plugin_name__, dict(type="popup", msg="Heater Idle Timeout Triggered"))
+						self._plugin_manager.send_plugin_message(__plugin_name__, dict(type="popup",
+																					   msg="Heater Idle Timeout Triggered"))
 					for k in self._printer.get_current_temperatures().keys():
 						self._printer.set_temperature(k, 0)
 			else:
 				if self._heaterTimer:
 					self._logger.info(u"Timer Stopped")
 					self._heaterTimer = None
-
 
 	##-- StartupPlugin hooks
 
@@ -108,7 +109,7 @@ class HeaterTimeout(octoprint.plugin.AssetPlugin,
 	def get_settings_defaults(self):
 		return dict(
 			enabled=False,
-                        notifications=True,
+			notifications=True,
 			interval=15,
 			timeout=600
 		)
@@ -145,8 +146,10 @@ class HeaterTimeout(octoprint.plugin.AssetPlugin,
 			)
 		)
 
+
 __plugin_name__ = "HeaterTimeout"
 __plugin_pythoncompat__ = ">=2.7,<4"
+
 
 def __plugin_load__():
 	global __plugin_implementation__
@@ -156,4 +159,3 @@ def __plugin_load__():
 	__plugin_hooks__ = {
 		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
 	}
-
