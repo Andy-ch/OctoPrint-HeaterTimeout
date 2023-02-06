@@ -71,10 +71,10 @@ class HeaterTimeout(octoprint.plugin.AssetPlugin,
 				elif time.time() - self._heaterTimer > self._settings.get_int(['timeout']):
 					self._logger.info(u"Timeout triggered, shutting down heaters")
 					if self._settings.get_int(['notifications']):
-						self._plugin_manager.send_plugin_message(__plugin_name__, dict(type="popup",
-																					   msg="Heater Idle Timeout Triggered"))
-					for k in self._printer.get_current_temperatures().keys():
-						self._printer.set_temperature(k, 0)
+						self._plugin_manager.send_plugin_message(__plugin_name__, dict(type="popup", msg="Heater Idle Timeout Triggered"))
+					for k in temps.keys():
+						if temps[k]['target']:
+							self._printer.set_temperature(k, 0)
 			else:
 				if self._heaterTimer:
 					self._logger.info(u"Timer Stopped")
