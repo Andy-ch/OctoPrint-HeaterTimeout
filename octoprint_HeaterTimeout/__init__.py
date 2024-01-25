@@ -68,10 +68,24 @@ class HeaterTimeout(octoprint.plugin.AssetPlugin,
 				if not self._heaterTimer:
 					self._heaterTimer = int(time.time())
 					self._logger.info(u"Timer Started: %r" % self._heaterTimer)
-				elif time.time() - self._heaterTimer > self._settings.get_int(['timeout']):
-					self._logger.info(u"Timeout triggered, shutting down heaters")
+				elif time.time() - self._heaterTimer > self._settings.get_int(['timeout']) and self._printer.is_ready():
+					self._logger.info(u"Heater Timeout triggered, shutting down heaters")
 					if self._settings.get_int(['notifications']):
 						self._plugin_manager.send_plugin_message(__plugin_name__, dict(type="popup", msg="Heater Idle Timeout Triggered"))
+					for k in temps.keys():
+						if temps[k]['target']:
+							self._printer.set_temperature(k, 0)
+				elif time.time() - self._heaterTimer > self._settings.get_int(['pausetimeout']) and self._printer.is_paused():
+					self._logger.info(u"Pause Heater Timeout triggered, shutting down heaters")
+					if self._settings.get_int(['notifications']):
+						self._plugin_manager.send_plugin_message(__plugin_name__, dict(type="popup", msg="Heater Pause Idle Timeout Triggered"))
+					for k in temps.keys():
+						if temps[k]['target']:
+							self._printer.set_temperature(k, 0)
+				elif time.time() - self._heaterTimer > self._settings.get_int(['fallbacktimeout']) and not self._printer.is_paused():
+					self._logger.info(u"Fallback Heater Timeout triggered, shutting down heaters")
+					if self._settings.get_int(['notifications']):
+						self._plugin_manager.send_plugin_message(__plugin_name__, dict(type="popup", msg="Heater Fallback Idle Timeout Triggered"))
 					for k in temps.keys():
 						if temps[k]['target']:
 							self._printer.set_temperature(k, 0)
@@ -111,7 +125,9 @@ class HeaterTimeout(octoprint.plugin.AssetPlugin,
 			enabled=False,
 			notifications=True,
 			interval=15,
-			timeout=600
+			timeout=600,
+			pausetimeout=22800,
+			fallbacktimeout=3600
 		)
 
 	def on_settings_initialized(self):
